@@ -41,5 +41,5 @@ What is still a stub:
 - `src/app/layout.tsx` + `src/app/page.tsx` — scaffold against the installed Next version (see `node_modules/next/dist/docs/`); the `odpc-compliance-saas` siblings are a working reference.
 - Auth (sessions, password reset, email verify) — copy and adapt the `lib/session.ts`, `lib/password.ts`, `lib/email-verification.ts` set from `odpc-compliance-saas`.
 - Payments (M-Pesa Daraja / Paystack / card) — stack-specific, add per project.
-- `scripts/migrate.ts` — applies SQL migrations from `./drizzle`; run `npm run db:generate` first against a Postgres database to emit them.
+- `scripts/migrate.ts` — applies SQL migrations from `./drizzle`; run `npm run db:generate` first to emit them (it diffs the schema against the previous migration snapshot, so it needs no database). `db:migrate` is the step that requires `DATABASE_URL` pointing at a Postgres instance.
 - `scripts/seed.ts` — stub; no seed data configured yet.
