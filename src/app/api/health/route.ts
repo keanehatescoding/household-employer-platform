@@ -22,13 +22,14 @@ function withDeadline<T>(promise: Promise<T>): Promise<T> {
 
 export async function GET() {
   let client: PoolClient | undefined;
+  let destroyClient = true;
   try {
     client = await pool.connect();
     // connectionTimeoutMillis covers connection setup; the statement timeout
-    // covers execution on this checked-out session. Neither leaks because the
-    // client is discarded in finally.
+    // covers execution on this checked-out session.
     await withDeadline(client.query("SET statement_timeout = 5000"));
     await withDeadline(client.query("select 1"));
+    destroyClient = false;
     return Response.json({ ok: true });
   } catch (err) {
     // Log the cause but keep the response minimal: the platform only needs to
@@ -36,8 +37,8 @@ export async function GET() {
     console.error("Health check failed: the database didn't answer", err);
     return Response.json({ ok: false }, { status: 503 });
   } finally {
-    // A timed-out query may still be in flight on the server. Discard this
-    // client rather than returning a possibly-stalled session to the pool.
-    client?.release(true);
+    // A timed-out query may still be in flight on the server. Discard failed
+    // probes, but return healthy sessions to the pool.
+    client?.release(destroyClient);
   }
 }
