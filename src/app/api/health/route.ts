@@ -25,10 +25,13 @@ export async function GET() {
   let destroyClient = true;
   try {
     client = await pool.connect();
-    // connectionTimeoutMillis covers connection setup; the statement timeout
-    // covers execution on this checked-out session.
-    await withDeadline(client.query("SET statement_timeout = 5000"));
+    // connectionTimeoutMillis covers connection setup. SET LOCAL confines the
+    // timeout to this probe, so releasing a healthy session cannot poison later
+    // queries that legitimately run longer than DEADLINE_MS.
+    await withDeadline(client.query("BEGIN"));
+    await withDeadline(client.query("SET LOCAL statement_timeout = 5000"));
     await withDeadline(client.query("select 1"));
+    await withDeadline(client.query("COMMIT"));
     destroyClient = false;
     return Response.json({ ok: true });
   } catch (err) {
