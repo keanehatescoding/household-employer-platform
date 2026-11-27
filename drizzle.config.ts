@@ -10,5 +10,9 @@ export default defineConfig({
   dialect: "postgresql",
   schema: "./src/db/schema.ts",
   out: "./drizzle",
-  dbCredentials: { url: process.env.DATABASE_URL! },
+  // `db:generate` diffs schema against the snapshot and needs no database;
+  // fall back to a local placeholder so it works without DATABASE_URL.
+  dbCredentials: {
+    url: process.env.DATABASE_URL ?? "postgres://postgres:postgres@127.0.0.1:5432/postgres",
+  },
 });
